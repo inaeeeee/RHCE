@@ -1,0 +1,6 @@
+---
+# Tasks
+- name: 패키지 설치 - {{ packages }}
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: absent

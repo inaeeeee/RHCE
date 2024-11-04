@@ -1,0 +1,40 @@
+---
+- name: 0) 추가 실습
+  hosts: all
+  become: true
+  remote_user: ansible
+  vars:
+    username: developer
+    pwhash: developer
+  tasks:
+    - name: 1) 사용자 추가 및 암호 설정
+      ansible.builtin.user:
+        name: "{{ username }}"
+        password: "{{ pwhash | password_hash('sha512', 'developer') }}"
+
+    - name: 2) 파일 배포 - /etc/sudoers.d/developer
+      ansible.builtin.copy:
+        src: files/developer
+        dest: /etc/sudoers.d/developer
+        mode: '0644'
+
+    - name: 3) SSH public key 배포
+      ansible.posix.authorized_key:
+        user: developer
+        state: present
+        key: "{{ lookup('file', '/home/ansible/.ssh/id_rsa.pub') }}"
+
+    - name: 환경 파일 배포 - $HOME/.bashrc
+      ansible.builtin.template: 
+        src: templates/bashrc.j2
+        dest: /home/developer/.bashrc
+        owner: developer
+        group: developer
+        mode: '0644'
+
+    - name: 디렉토리 복사 - $HOME/.local/share/blesh/
+      ansible.builtin.copy:
+        src: files/blesh
+        dest: /home/developer/.local/share/
+        owner: developer
+        group: developer

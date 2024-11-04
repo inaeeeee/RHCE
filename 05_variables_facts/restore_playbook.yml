@@ -1,0 +1,55 @@
+---
+- name: Restore
+  hosts: ansible1.example.com
+  vars:
+    firewall_pkg: firewalld
+    firewall_svc: firewalld
+    web_pkg: httpd
+    web_svc: httpd
+    ssl_pkg: mod_ssl
+    httpdconf_src: files/httpd.conf
+    httpdconf_dest: /etc/httpd/conf/httpd.conf
+    htaccess_src: files/.htaccess
+    secrets_dir: /etc/httpd/secrets
+    secrets_src: files/htpasswd
+    secrets_dest: "{{ secrets_dir }}/htpasswd"
+    web_root: /var/www/html
+  tasks:
+    - name: 1) 방화벽
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: disabled
+      loop:
+        - http
+        - https
+
+    - name: 2) 서비스 종료
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - "{{ firewall_svc }}"
+        - "{{ web_svc }}"
+
+    - name: 3) 서비스 파일 삭제
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ web_root }}/index.html"
+        - "{{ web_root }}/.htaccess"
+
+    - name: 3) 서비스 설정 삭제 - /etc/httpd/secrets
+      ansible.builtin.file:
+        path: "{{ secrets_dir }}"
+        state: absent
+
+    - name: 4) 패키지 삭제
+      ansible.builtin.dnf:
+        name:
+          - "{{ web_pkg }}"
+          - "{{ ssl_pkg }}"
+        state: absent

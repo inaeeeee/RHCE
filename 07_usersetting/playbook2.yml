@@ -1,0 +1,38 @@
+---
+- name: 0) 추가 실습 - 예제
+  hosts: all
+  tasks:
+
+    - name: 1) developer 사용자 추가
+      ansible.builtin.user:
+        name: developer
+        password: "{{ 'developer' | password_hash('sha512') }}"
+
+    - name: 2) 키 배포
+      ansible.posix.authorized_key:
+        user: developer
+        state: present
+        key: "{{ lookup('file', '/'/home/ansible/.ssh/id_rsa.pub) }}"
+
+    - name: 1) /etc/sudoers.d/developer 파일 생성
+      ansible.builtin.copy:
+        src: files/developer
+        dest: /etc/sudoers.d/developer
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: 2) 사용자 환경 설정 - $HOME/.bashrc
+      ansible.builtin.template:
+        scr: templates/bashrc.j2
+        dest: /home/developer/.bashrc
+        owner: developer
+        group: developer
+        mode: '0644'
+
+    - name: 2) 사용자 환경 설정 - ble.sh
+      ansible.builtin.copy:
+        src: files/ble.sh
+        dest: /home/developer/.local/share/
+        owner: developer
+        group: developer

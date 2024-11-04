@@ -1,0 +1,30 @@
+---
+- name: Restore factcheck.yml
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: 1) 방화벽 끄기
+      ansible.posix.firewalld:
+        service: http
+        permanent: true
+        immediate: true
+        state: disabled
+         
+    - name: 3) 서비스 내리기
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - httpd
+        - firewalld
+
+    - name: 3) index파일 삭제
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: 4) 패키지 삭제
+      ansible.builtin.yum:
+        name: httpd
+        state: absent

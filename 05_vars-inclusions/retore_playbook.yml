@@ -1,0 +1,10 @@
+---
+- name: Play 01) 파일 서버 패키지 설치
+  hosts: all
+  tasks:
+    - name: 4) 패키지 제거 - tomcat
+      ansible.builtin.include_tasks: uninstall_package.yml
+      vars:
+        packages:
+          - httpd
+          - tomcat

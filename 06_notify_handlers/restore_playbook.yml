@@ -1,0 +1,23 @@
+---
+- name: 0) MariaDB
+  hosts: databases
+  remote_user: root
+  vars:
+    db_packages:
+      - mariadb-server
+      - python3-PyMySQL
+    db_service: mariadb
+    resources_url: http://ansible.example.com
+    config_file_url: "{{ resources_url }}/my.cnf.standard"
+    config_file_dst: /etc/my.cnf
+  tasks:
+    - name: 1) DB 서비스 중지
+      ansible.builtin.service:
+        name: "{{ db_service }}"
+        state: stopped
+        enabled: false
+
+    - name: 2) DB 서비스 삭제
+      ansible.builtin.yum:
+        name: "{{ db_packages }}"
+        state: absent

@@ -1,0 +1,8 @@
+---
+- name: Restore
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: 1) /etc/motd 파일 비우기
+      ansible.builtin.shell:
+        cmd: '> /etc/motd'
